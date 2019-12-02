@@ -243,18 +243,9 @@ export default {
 		ws.onopen = function() {
 			console.log("ws onopen");
 		}
-		term.textarea.onkeydown = function(e) {
-			console.log("onkeydown: ", e.keyCode);
-			if(e.keyCode == 13) {
-				console.log("onkeydown: ", tempMsg);
-				ws.send(tempMsg);
-				tempMsg = "";
-			}
-		}
 		term.on('data',function(data){
 			console.log('data =>', data)
-			term.write(data.toString());
-			tempMsg = tempMsg + data.toString();
+			ws.send(data.toString());
 		})
         term.on('resize', size => {
             ws.send('resize', [size.cols, size.rows]);
