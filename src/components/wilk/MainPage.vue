@@ -29,6 +29,9 @@
 					<br>
 					<span> {{message}} </span>
 				</div>
+				<!-- <div>
+					<input type="file" value="" id="file" @change="uploadConfig">
+				</div> -->
 			</div>
 		</div>
 	</div>
@@ -240,7 +243,28 @@ export default {
 			.catch((res) => {
 				console.log(res.data.result)
 			})
-		}
+		},
+		uploadConfig(e) {
+			// $("input[id='file']").click()
+			// 上传操作流程：先进入某个目录，然后点击上传按钮，选择要上传的文件，
+			// 上传成功后（文件放在webssh服务器的某个地方），会后台执行scp到目标位置。
+			console.log("test uplad");
+			let formData = new FormData();
+			formData.append('file', e.target.files[0]);
+			let url = "file/upload";
+			let config = {
+				headers:{'Content-Type':'multipart/form-data'}
+			};
+			this.$axios.post(url, formData, config).then(function (response) {
+				console.log(response.data)
+				// ws.send("scp from to");
+			});
+		},
+		// 文件下载流程：用户执行某条命令（这条命令会写入到目标服务器的linux命令里）后，
+		// 会将文件拷贝（scp）到webssh服务器的某个目录里，然后客户端可以看到此文件，然后点击下载即可。
+		// 因为目前xterm.js与shell是同步传递信息的，所以中间截断或者修改返回结果并不是那么容易处理，
+		// 需要字符级的处理，也是有办法做的。
+		// 后面要是配合自己写的ssh-server，也是非常好实现的。
 	},
 	mounted() {
 		// 从服务器获取数据，如果文件夹数量为0时，显示新增文件夹的窗口。
