@@ -364,7 +364,7 @@ ul.ztree.zTreeDragUL {
 			<ul class="ztree">
 				<ztree-item v-for='(m,i) in treeDataSource' :key='i' :model.sync="m" :num.sync='i'
 				    root='0' :nodes.sync='treeDataSource.length' :ischeck='isCheck' :callback='func'
-				    :expandfunc='expand' :cxtmenufunc='contextmenu' :trees.sync='treeDataSource' :addNode1='addNode1'></ztree-item>
+				    :expandfunc='expand' :cxtmenufunc='contextmenu' :trees.sync='treeDataSource' :addNode1='addNode1' :delNode1='delNode1'></ztree-item>
 			</ul>
 		</div>
 	</div>
@@ -398,7 +398,7 @@ export default{
 		contextmenu:{
             type:Function,
             default:function(){
-            	console.log("defalt click contextmenu");
+            	console.log("default click contextmenu");
             }
 		},
 		// 是否展开
@@ -414,8 +414,10 @@ export default{
 			default:false
         },
         addNode2: {
-            type: Function,
-            defalt: null
+            type: Function
+        },
+        delNode2: {
+            type: Function
         }
 	},
 	watch:{
@@ -429,8 +431,12 @@ export default{
 	},
 	methods:{
         addNode1(nodeModel) {
-            console.log("test1");
+            console.log("addNode1");
             this.addNode2(nodeModel);
+        },
+        delNode1(isChildren, nodeModel) {
+            console.log("delNode1");
+            this.delNode2(isChildren, nodeModel);
         },
         initTreeData(){
             var tempList = JSON.parse(JSON.stringify(this.list));
@@ -519,10 +525,12 @@ export default{
 					twoWay:true,
 					default:false
                 },
-                addNode1: {
-                    type: Function,
-                    defalt: null
+                addNode1:{
+                    type:Function
                 },
+                delNode1:{
+                    type:Function
+                }
         	},
         	methods:{
                 zzcontextmenuClick(m) {
@@ -623,49 +631,23 @@ export default{
                 addNode(nodeModel) {
                     this.addNode1(nodeModel);
                 },
-                // // 新增节点
-			    // addNode(nodeModel){
-                //     console.log(this);
-                //     console.log(nodeModel.parentId);
-                //     if(nodeModel.parentId != 0) {
-                //         console.log("非文件夹")
-                //         return ;
-                //     } else {
-                //         console.log("文件夹")
-                //     }
-			    //     if(nodeModel) {
-			    //       var _nid = +new Date();
-			    //       nodeModel.children.push({
-			    //           id:_nid,
-			    //           parentId:nodeModel.id,
-			    //           name:"动态节点哦～",
-			    //           path:"",
-			    //           clickNode:false,
-			    //           ckbool:false,
-			    //           isCheck:this.ischeck,
-			    //           isFolder:false,
-			    //           isExpand:false,
-			    //           hover:false,
-			    //           loadNode:0,
-			    //           children:[]
-			    //       });
-			    //       nodeModel.isFolder = true;
-			    //       console.log(JSON.parse(JSON.stringify(nodeModel.children)));
-			    //     }else {
-			    //       console.log("请先选中节点");
-			    //     }
-			    // },
 			    // 删除节点
 			    delNode(nodeModel){
 			        if(nodeModel) {
 			           if(this.parentNodeModel.hasOwnProperty("children")) {
 			              this.parentNodeModel.children.splice(this.parentNodeModel.children.indexOf(nodeModel),1);
-			           }else if(this.parentNodeModel instanceof Array){
+                          this.$parent.delNode1(true, nodeModel);
+                       }else if(this.parentNodeModel instanceof Array){
+                          if (nodeModel.children.length > 0) {
+                              return;
+                          }
+                          // console.log("aaa: " + nodeModel.children.length);
 			              // 第一级根节点处理
-			              this.parentNodeModel.splice(this.parentNodeModel.indexOf(nodeModel),1);
+                          this.parentNodeModel.splice(this.parentNodeModel.indexOf(nodeModel),1);
+                          this.delNode1(false, nodeModel);
 			           }
 			           nodeModel = null;
-			        }else {
+			        } else {
 			           console.log("请先选中节点");
 			        }
 			    },
@@ -773,7 +755,7 @@ export default{
                     <!--新增-->
 					<span  v-show='model.hover' title='新增' class="button add" @click="addNode(model)" v-if='model.parentId == 0'></span>
 					<!--删除-->
-				    <span v-show='model.hover' title='删除' class="button remove" @click="delNode(model)" v-if='model.parentId != 0'></span>
+				    <span v-show='model.hover' title='删除' class="button remove" @click="delNode(model)" v-if='model.parentId != 0 || model.children == 0'></span>
 				</a>
 				<ul :class="ulClassVal" v-show='model.isFolder'>
 					<ztree-item v-for="(item,i) in model.children" :key='i' :callback='callback' :expandfunc='expandfunc' :cxtmenufunc='cxtmenufunc' :model.sync="item" :num.sync='i' root='1' :nodes.sync='model.children.length' :ischeck='ischeck' :trees.sync='trees'></ztree-item>

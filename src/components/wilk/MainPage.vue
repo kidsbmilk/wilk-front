@@ -5,7 +5,7 @@
         		<div id='terminal'></div>
 			</div>
 			<div class='tree-div'>
-				<tree-page :mytree="mytree" :showAdd="showAdd" :showAddCmdFunc="showAddCmdFunc" :freshTree="freshTree" v-bind:ztreeDataSourceList="ztreeDataSourceList"></tree-page>
+				<tree-page :mytree="mytree" :showAdd="showAdd" :showAddCmdFunc="showAddCmdFunc" :delCmdFunc="delCmdFunc" :freshTree="freshTree" v-bind:ztreeDataSourceList="ztreeDataSourceList"></tree-page>
 				<div v-if="showAddfolder" class = "add-server-div">
 					<input class="create-server-input" ref='serverName' placeholder="请输入服务器名，作为文件夹，不能重复" maxlength="255">
 					<input class="create-server-input" ref='serverValue' placeholder="请输入服务器值，作为第一条命令" maxlength="255">
@@ -129,9 +129,32 @@ export default {
 			this.showAddfolder = isShow;
 		},
 		showAddCmdFunc(isShow, nodeModel) {
-			console.log("test3");
+			console.log("showAddCmdFunc");
 			this.showAddCmd = isShow;
 			nodeModelTp = nodeModel;
+		},
+		delCmdFunc(isChildren, nodeModel) {
+			console.log("delCmdFunc");
+			console.log(nodeModel.id);
+			var url = "";
+			if (isChildren) {
+				url = "/cmd/delete";
+			} else {
+				url = "/server/delete";
+			}
+			var data = new URLSearchParams();
+            data.append("deletedId", nodeModel.id);
+            this.$axios.post(
+                url,
+                data
+            )
+            .then((res) => {
+				this.message = res.data.result;
+				this.freshTree();
+            })
+            .catch((res) => {
+                console.log(res.data.result)
+            })
 		},
 		addServer() {
 			console.log("add server");
