@@ -28,7 +28,7 @@ body {
         <vue-context-menu :contextMenuData="contextMenuData"
 						@newServer="newServer" @freshTreeHere="freshTreeHere">
 					</vue-context-menu>
-        <vue-ztree :list.sync='ztreeDataSourceList' :contextmenu='contextmenuClick' :addNode2="addNode2" :func='nodeClick' :is-open='true'
+        <vue-ztree :list.sync='ztreeDataSourceList' :contextmenu='contextmenuClick' :addNode2="addNode2" :delNode2="delNode2" :func='nodeClick' :is-open='true'
             :is-check='false' ></vue-ztree>
     </div>
 </template>
@@ -45,60 +45,6 @@ export default {
       treeDeepCopy:[],
       parentNodeModel:[],//当前点击节点父亲对象
       nodeModel:null, // 当前点击节点对象
-    //   ztreeDataSourceList:[{
-    //       // 这部分传成json就可以了。
-    //       id:880,
-    //       name:"测试环境1",
-    //       iconClass:"iconClassRoot",
-    //       open:true,
-    //       parentId:0,
-    //       children:[{
-    //         id:881,
-    //         name:"c3-miui-ad-traffic00.bj",
-    //         parentId:880,
-    //         iconClass:"iconClassNode",
-    //       },{
-    //         id:882,
-    //         name:"mysql -h 10.118.22.101 -umiui_ad_sched_wr -pg0R6bg3hpL1bg7I371jYyyoL5014Baeb --default-character-set=utf8 -D miui_ad_schedule",
-    //         parentId:880,
-    //         iconClass:"iconClassNode",
-    //       }]
-    //   },{
-    //       id:990,
-    //       name:"测试环境2",
-    //       iconClass:"iconClassRoot",
-    //       open:true,
-    //       parentId:0,
-    //       children:[{
-    //           id:991,
-    //           name:"c3-miui-ad-traffic00",
-    //           parentId:990,
-    //           iconClass:"iconClassNode",
-    //       },{
-    //           id:992,
-    //           name:"cd /home/rd/wangming1/miui-ad-schedule-web",
-    //           parentId:990,
-    //           iconClass:"iconClassNode",
-    //       }]
-    //   },
-    //   {
-    //       id:993,
-    //       name:"测试环境3",
-    //       iconClass:"iconClassRoot",
-    //       open:true,
-    //       parentId:0,
-    //       children:[{
-    //           id:996,
-    //           name:"c4-miui-ad-sup17.bj",
-    //           parentId:993,
-    //           iconClass:"iconClassNode",
-    //       },{
-    //           id:997,
-    //           name:"cd /home/work/log/miui-ad-schedule-web",
-    //           parentId:993,
-    //           iconClass:"iconClassNode",
-    //       }]
-    //   }],
       contextMenuData: {
         // the contextmenu name(@1.4.1 updated)
           menuName: 'demo',
@@ -135,6 +81,10 @@ export default {
       showAddCmdFunc: {
           type: Function,
           default: null
+      },
+      delCmdFunc: {
+        type: Function,
+        default: null
       },
       ztreeDataSourceList: {
           type: Array,
@@ -229,8 +179,12 @@ export default {
       	this.showAdd(true);
     },
     addNode2(nodeModel) {
-        console.log("test2");
+        console.log("addNode2");
         this.showAddCmdFunc(true, nodeModel);
+    },
+    delNode2(isChildren, nodeModel) {
+      console.log("delNode2");
+      this.delCmdFunc(isChildren, nodeModel);
     },
     freshTreeHere () {
         console.log("freshTreeHere");
