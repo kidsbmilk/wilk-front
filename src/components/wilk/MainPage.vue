@@ -51,7 +51,7 @@ var term = new Terminal({cols: 100,
                   cursorBlink: 5,
                   scrollback: 1000,
 				  tabStopWidth: 4,
-				  fontSize: 12
+				//   fontSize: 12
 			  });
 var ws = null;
 var nodeModelTp = null;
@@ -212,12 +212,6 @@ export default {
             this.$axios.post(
                 '/cmd/add',
                 data
-                // {
-                //     name: this.$refs.name.value,
-                //     value: this.$refs.value.value,
-                //     describtion: this.$refs.describtion.value,
-                //     cmdTypeId: parseInt(this.$refs.cmdTypeId.value)
-                // }
             )
             .then((res) => {
 				this.message = res.data.result;
@@ -279,34 +273,31 @@ export default {
 		ws = new WebSocket("ws://localhost/wilk/websocket");
 		ws.onopen = function(event) {
             term.open(document.getElementById('terminal'));
-			// term.fit();
-			// // send the terminal size to the server.
-			// ws.send(JSON.stringify(["set_size", term.rows, term.cols,
-			// 								window.innerHeight, window.innerWidth]));
-			// window.onresize = function() {
-				// term.fit();
-				// console.log("now height " + $(window).height());
-				// console.log("now width " + $(window).width());
-				// // send the new size to the server so that it can trigger a resize in the running process.
-				// ws.send(JSON.stringify(["set_size", terminal.term.rows, terminal.term.cols,
-				// 								$(window).height(), $(window).width()]));
-			// };
+			term.fit();
+			// send the terminal size to the server.
+			// 如果是组装命令，可以用JSON.stringify来分隔命令跟参数，后端容易做判断。TODO.
 			var tempMsg = "";
 			ws.onerror = function() {
 				console.log('connect error.');
 			};
 			ws.onmessage = function(event) {
 				console.log('on message:', event.data);
-				term.write(event.data);
+				if (event.data == 'wilk-login-success') {
+					// 不用看最开始设置的cols为100，这里实际值可能不是100。
+					ws.send('stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
+				} else {
+					term.write(event.data);
+				}
 			};
 			term.on('data',function(data){
 				console.log('data =>', data)
 				ws.send(data.toString());
 			});
-			// term.on('resize', size => {
-			// 	ws.send('resize', [size.cols, size.rows]);
-			// 	console.log('resize', [size.cols, size.rows]);
-			// });
+			// 不用看最开始设置的cols为100，这里实际值可能不是100。
+			term.on('resize', size => {
+				ws.send('stty cols ' + size.cols + '; stty rows ' + size.rows + '\r');
+				console.log('resize', [size.cols, size.rows]);
+			});
         };
 	}
 }
