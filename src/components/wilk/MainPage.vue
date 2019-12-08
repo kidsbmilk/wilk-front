@@ -276,28 +276,38 @@ export default {
 		.catch((res) => {
 			console.log(res.data.result)
 		})
-		// 
-		term.open(document.getElementById('terminal'));
 		ws = new WebSocket("ws://localhost/wilk/websocket");
-		var tempMsg = "";
-		ws.onerror = function() {
-			console.log('connect error.');
-		}
-		ws.onmessage = function(event) {
-			console.log('on message:', event.data);
-			term.write(event.data);
-		}
-		ws.onopen = function() {
-			console.log("ws onopen");
-		}
-		term.on('data',function(data){
-			console.log('data =>', data)
-			ws.send(data.toString());
-		})
-        term.on('resize', size => {
-            ws.send('resize', [size.cols, size.rows]);
-            console.log('resize', [size.cols, size.rows]);
-		})  
+		ws.onopen = function(event) {
+            term.open(document.getElementById('terminal'));
+			// term.fit();
+			// // send the terminal size to the server.
+			// ws.send(JSON.stringify(["set_size", term.rows, term.cols,
+			// 								window.innerHeight, window.innerWidth]));
+			// window.onresize = function() {
+				// term.fit();
+				// console.log("now height " + $(window).height());
+				// console.log("now width " + $(window).width());
+				// // send the new size to the server so that it can trigger a resize in the running process.
+				// ws.send(JSON.stringify(["set_size", terminal.term.rows, terminal.term.cols,
+				// 								$(window).height(), $(window).width()]));
+			// };
+			var tempMsg = "";
+			ws.onerror = function() {
+				console.log('connect error.');
+			};
+			ws.onmessage = function(event) {
+				console.log('on message:', event.data);
+				term.write(event.data);
+			};
+			term.on('data',function(data){
+				console.log('data =>', data)
+				ws.send(data.toString());
+			});
+			// term.on('resize', size => {
+			// 	ws.send('resize', [size.cols, size.rows]);
+			// 	console.log('resize', [size.cols, size.rows]);
+			// });
+        };
 	}
 }
 </script>
