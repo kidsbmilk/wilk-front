@@ -29,10 +29,25 @@
 					<br>
 					<span> {{message}} </span>
 				</div>
-				<!-- <div>
-					<input type="file" value="" id="file" @change="uploadConfig">
-				</div> -->
 			</div>
+			<div class = "file-div" v-show="showFile">
+				<el-form :model="form">
+					<el-form-item label="请输入文件名" required>
+						<el-input v-model="form.fileName" auto-complete="off" class="el-col-width" required></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button size="small" type="primary" @click="handleDownLoad">下载</el-button>
+					</el-form-item>
+					<el-form-item>
+						<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
+						 :on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="5" 
+						 :on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
+							<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
+							<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
+						</el-upload>
+					</el-form-item>
+				</el-form>
+    		</div>
 		</div>
 	</div>
 </template>
@@ -43,6 +58,11 @@ import * as fit from 'xterm/lib/addons/fit/fit'
 import * as attach from 'xterm/lib/addons/attach/attach'
 import 'xterm/dist/xterm.css'
 import treePage from './TreePage.vue'
+import ElementUI from 'element-ui' //element-ui的全部组件
+import 'element-ui/lib/theme-chalk/index.css'//element-ui的css
+import Vue from 'vue'
+
+Vue.use(ElementUI) //使用elementUI
 
 Terminal.applyAddon(fit)
 Terminal.applyAddon(attach)
@@ -63,8 +83,14 @@ export default {
 	components: { treePage },
 	data() {
 		return {
+			form: {
+				fileName: '',
+			},
+			uploadUrl: '/wilk/file/upload',
+			fileList: [],
 			showAddfolder: false,
 			showAddCmd: false,
+			showFile: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -124,6 +150,32 @@ export default {
 		}
 	},
 	methods: {
+		handleDownLoad() {
+			window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
+		},
+		handleExceed(files, fileList) {
+			this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+		},
+		beforeRemove(file, fileList) {
+			return this.$confirm(`确定移除 ${ file.name }？`);
+		},
+		handleUploadError(error, file) {
+			this.$notify.error({
+						title: 'error',
+						message: '上传出错:' +  error,
+						type: 'error',
+						position: 'bottom-right'
+			})
+		},
+		//测试上传文件(注意web的上下文)
+		handleBeforeUpload(file) {
+			this.uploadUrl ='/wilk/file/upload';
+		},
+		handleUploadSuccess(response, file, fileList) {
+		 	// 缓存接口调用所需的文件路径
+			console.log('文件上传成功');
+			// ws.send("scp from to");
+	 	},
 		mytree(str) {
 			console.log("mytree");
 			ws.send(str);
@@ -236,22 +288,6 @@ export default {
 			})
 			.catch((res) => {
 				console.log(res.data.result)
-			})
-		},
-		uploadConfig(e) {
-			// $("input[id='file']").click()
-			// 上传操作流程：先进入某个目录，然后点击上传按钮，选择要上传的文件，
-			// 上传成功后（文件放在webssh服务器的某个地方），会后台执行scp到目标位置。
-			console.log("test uplad");
-			let formData = new FormData();
-			formData.append('file', e.target.files[0]);
-			let url = "file/upload";
-			let config = {
-				headers:{'Content-Type':'multipart/form-data'}
-			};
-			this.$axios.post(url, formData, config).then(function (response) {
-				console.log(response.data)
-				// ws.send("scp from to");
 			});
 		},
 		// 文件下载流程：用户执行某条命令（这条命令会写入到目标服务器的linux命令里）后，
@@ -281,6 +317,9 @@ export default {
 				console.log('connect error.');
 			};
 			ws.onmessage = function(event) {
+				// console.log("click upload");
+				// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
+				// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
 				console.log('on message:', event.data);
 				if (event.data == 'wilk-login-success') {
 					// 不用看最开始设置的cols为100，这里实际值可能不是100。
