@@ -32,20 +32,24 @@
 			</div>
 			<div class = "file-div" v-show="showFile">
 				<el-form :model="form">
-					<el-form-item label="请输入文件名" required>
-						<el-input v-model="form.fileName" auto-complete="off" class="el-col-width" required></el-input>
-					</el-form-item>
-					<el-form-item>
-						<el-button size="small" type="primary" @click="handleDownLoad">下载</el-button>
-					</el-form-item>
-					<el-form-item>
-						<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
-						 :on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="5" 
-						 :on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
-							<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
-							<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
-						</el-upload>
-					</el-form-item>
+					<div  v-show="showFileDownload">
+						<el-form-item label="请输入文件名" required>
+							<el-input v-model="form.fileName" auto-complete="off" class="el-col-width" required></el-input>
+						</el-form-item>
+						<el-form-item>
+							<el-button size="small" type="primary" @click="handleDownLoad">下载</el-button>
+						</el-form-item>
+					</div>
+					<div  v-show="showFileUpload">
+						<el-form-item>
+							<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
+							:on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="5" 
+							:on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
+								<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
+								<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
+							</el-upload>
+						</el-form-item>
+					</div>
 				</el-form>
     		</div>
 		</div>
@@ -90,7 +94,9 @@ export default {
 			fileList: [],
 			showAddfolder: false,
 			showAddCmd: false,
-			showFile: false,
+			showFile: true,
+			showFileDownload: false,
+			showFileUpload: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -149,6 +155,13 @@ export default {
 			}]
 		}
 	},
+	// watch: {
+    //   showFile(val, oldVal) {
+	// 	  if (!oldVal && val) {
+	// 		  this.uploadFunc(); // 这个调用在mounted的ws下也不行
+	// 	  }
+    //   }
+    // },
 	methods: {
 		handleDownLoad() {
 			window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
@@ -175,6 +188,7 @@ export default {
 		 	// 缓存接口调用所需的文件路径
 			console.log('文件上传成功');
 			// ws.send("scp from to");
+			this.showFileUpload = false;
 	 	},
 		mytree(str) {
 			console.log("mytree");
@@ -281,6 +295,7 @@ export default {
 			this.showAddCmd = false;
 		},
 		freshTree() {
+			// this.uploadFunc(); // 这个倒是可以，只是放mounted里的ws下就调用不了了。
 			console.log("freshTree");
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
@@ -290,6 +305,11 @@ export default {
 				console.log(res.data.result)
 			});
 		},
+		uploadFunc() {
+			console.log("click upload");
+			// this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
+			this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
+		}
 		// 文件下载流程：用户执行某条命令（这条命令会写入到目标服务器的linux命令里）后，
 		// 会将文件拷贝（scp）到webssh服务器的某个目录里，然后客户端可以看到此文件，然后点击下载即可。
 		// 因为目前xterm.js与shell是同步传递信息的，所以中间截断或者修改返回结果并不是那么容易处理，
@@ -297,6 +317,7 @@ export default {
 		// 后面要是配合自己写的ssh-server，也是非常好实现的。
 	},
 	mounted() {
+		let that = this;
 		// 从服务器获取数据，如果文件夹数量为0时，显示新增文件夹的窗口。
 		// freshTree()
 		this.$axios.get("/server/getserverandcmd")
@@ -324,6 +345,11 @@ export default {
 				if (event.data == 'wilk-login-success') {
 					// 不用看最开始设置的cols为100，这里实际值可能不是100。
 					ws.send('stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
+				} else if (event.data == 'wilkput') {
+					console.log(event.data);
+					// that.uploadFunc(); // 这种方式不行 TODO.
+					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
+					that.showFileUpload = true;
 				} else {
 					term.write(event.data);
 				}
