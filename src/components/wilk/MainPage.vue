@@ -169,7 +169,14 @@ export default {
     // },
 	methods: {
 		handleDownLoad() {
-			window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
+			// window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
+			this.$axios.get('/file/download?fileName=' + this.form.fileName)
+			.then((res) => {
+				wsGlobal.send("wilkget done " + this.form.fileName);
+			})
+			.catch((res) => {
+				console.log(res.data.result)
+			});
 		},
 		handleExceed(files, fileList) {
 			this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
