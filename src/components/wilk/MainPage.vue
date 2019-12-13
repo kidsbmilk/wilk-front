@@ -42,8 +42,9 @@
 					</div>
 					<div  v-show="showFileUpload">
 						<el-form-item>
+							<!-- 目前一次仅让上传一个文件 TODO. -->
 							<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
-							:on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="5" 
+							:on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="1" 
 							:on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
 								<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
 								<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
@@ -79,6 +80,7 @@ var term = new Terminal({cols: 100,
 			  });
 var ws = null;
 var nodeModelTp = null;
+var wsGlobal = null;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -184,10 +186,10 @@ export default {
 		handleBeforeUpload(file) {
 			this.uploadUrl ='/wilk/file/upload';
 		},
-		handleUploadSuccess(response, file, fileList) {
+		handleUploadSuccess(response, file, fileList) { // 目前一次仅让上传一个文件 TODO.
 		 	// 缓存接口调用所需的文件路径
 			console.log('文件上传成功');
-			// ws.send("scp from to");
+			wsGlobal.send("wilkput " + file.name);
 			this.showFileUpload = false;
 	 	},
 		mytree(str) {
@@ -328,6 +330,7 @@ export default {
 			console.log(res.data.result)
 		})
 		ws = new WebSocket("ws://localhost/wilk/websocket");
+		wsGlobal = ws;
 		ws.onopen = function(event) {
             term.open(document.getElementById('terminal'));
 			term.fit();
