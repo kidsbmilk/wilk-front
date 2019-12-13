@@ -33,9 +33,11 @@
 			<div class = "file-div" v-show="showFile">
 				<el-form :model="form">
 					<div  v-show="showFileDownload">
-						<el-form-item label="请输入文件名" required>
-							<el-input v-model="form.fileName" auto-complete="off" class="el-col-width" required></el-input>
-						</el-form-item>
+						<div v-show="showFileDownloadInput">
+							<el-form-item label="请输入文件名" required>
+								<el-input v-model="form.fileName" auto-complete="off" class="el-col-width" required></el-input>
+							</el-form-item>
+						</div>
 						<el-form-item>
 							<el-button size="small" type="primary" @click="handleDownLoad">下载</el-button>
 						</el-form-item>
@@ -99,6 +101,7 @@ export default {
 			showFile: true,
 			showFileDownload: false,
 			showFileUpload: false,
+			showFileDownloadInput: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -349,10 +352,12 @@ export default {
 					// 不用看最开始设置的cols为100，这里实际值可能不是100。
 					ws.send('stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
 				} else if (event.data == 'wilkput') {
-					console.log(event.data);
 					// that.uploadFunc(); // 这种方式不行 TODO.
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
 					that.showFileUpload = true;
+				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'wilkget') {
+					that.form.fileName = event.data.split(" ")[1];
+					that.showFileDownload = true;
 				} else {
 					term.write(event.data);
 				}
