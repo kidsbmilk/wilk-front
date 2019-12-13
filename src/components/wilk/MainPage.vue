@@ -99,9 +99,9 @@ export default {
 			showAddfolder: false,
 			showAddCmd: false,
 			showFile: true,
+			showFileDownloadInput: false,
 			showFileDownload: false,
 			showFileUpload: false,
-			showFileDownloadInput: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -170,9 +170,23 @@ export default {
 	methods: {
 		handleDownLoad() {
 			// window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
-			this.$axios.get('/file/download?fileName=' + this.form.fileName)
+			this.$axios({
+				method: 'get',
+				url: '/file/download?fileName=' + this.form.fileName,
+				responseType: 'blob'
+			})
 			.then((res) => {
+				var blob = new Blob([res.data])
+				var downloadElement = document.createElement('a');
+				var href = window.URL.createObjectURL(blob); //创建下载的链接
+				downloadElement.href = href;
+				downloadElement.download = this.form.fileName; //下载后文件名
+				document.body.appendChild(downloadElement);
+				downloadElement.click(); //点击下载
+				document.body.removeChild(downloadElement); //下载完成移除元素
+				window.URL.revokeObjectURL(href); //释放掉blob对象 
 				wsGlobal.send("wilkget done " + this.form.fileName);
+				this.showFileDownload = false;
 			})
 			.catch((res) => {
 				console.log(res.data.result)
