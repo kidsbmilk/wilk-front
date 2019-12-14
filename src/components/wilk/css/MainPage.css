@@ -17,6 +17,11 @@ html, body {
 	float: left;;
 }
 
+.file-div {
+	width: 24%;
+	float: left;;
+}
+
 .add-server-div {
 	margin-top: 2px;
 }

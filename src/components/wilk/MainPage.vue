@@ -30,6 +30,31 @@
 					<span> {{message}} </span>
 				</div>
 			</div>
+			<div class = "file-div" v-show="showFile">
+				<el-form :model="form">
+					<div  v-show="showFileDownload">
+						<div v-show="showFileDownloadInput">
+							<el-form-item label="请输入文件名" required>
+								<el-input v-model="form.fileName" auto-complete="off" class="el-col-width" required></el-input>
+							</el-form-item>
+						</div>
+						<el-form-item>
+							<el-button size="small" type="primary" @click="handleDownLoad">下载</el-button>
+						</el-form-item>
+					</div>
+					<div  v-show="showFileUpload">
+						<el-form-item>
+							<!-- 目前一次仅让上传一个文件 TODO. -->
+							<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
+							:on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="1" 
+							:on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
+								<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
+								<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
+							</el-upload>
+						</el-form-item>
+					</div>
+				</el-form>
+    		</div>
 		</div>
 	</div>
 </template>
@@ -40,6 +65,11 @@ import * as fit from 'xterm/lib/addons/fit/fit'
 import * as attach from 'xterm/lib/addons/attach/attach'
 import 'xterm/dist/xterm.css'
 import treePage from './TreePage.vue'
+import ElementUI from 'element-ui' //element-ui的全部组件
+import 'element-ui/lib/theme-chalk/index.css'//element-ui的css
+import Vue from 'vue'
+
+Vue.use(ElementUI) //使用elementUI
 
 Terminal.applyAddon(fit)
 Terminal.applyAddon(attach)
@@ -48,10 +78,11 @@ var term = new Terminal({cols: 100,
                   cursorBlink: 5,
                   scrollback: 1000,
 				  tabStopWidth: 4,
-				  fontSize: 12
+				//   fontSize: 12
 			  });
 var ws = null;
 var nodeModelTp = null;
+var wsGlobal = null;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -60,8 +91,17 @@ export default {
 	components: { treePage },
 	data() {
 		return {
+			form: {
+				fileName: '',
+			},
+			uploadUrl: '/wilk/file/upload',
+			fileList: [],
 			showAddfolder: false,
 			showAddCmd: false,
+			showFile: true,
+			showFileDownloadInput: false,
+			showFileDownload: false,
+			showFileUpload: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -120,7 +160,62 @@ export default {
 			}]
 		}
 	},
+	// watch: {
+    //   showFile(val, oldVal) {
+	// 	  if (!oldVal && val) {
+	// 		  this.uploadFunc(); // 这个调用在mounted的ws下也不行
+	// 	  }
+    //   }
+    // },
 	methods: {
+		handleDownLoad() {
+			// window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
+			this.$axios({
+				method: 'get',
+				url: '/file/download?fileName=' + this.form.fileName,
+				responseType: 'blob'
+			})
+			.then((res) => {
+				var blob = new Blob([res.data])
+				var downloadElement = document.createElement('a');
+				var href = window.URL.createObjectURL(blob); //创建下载的链接
+				downloadElement.href = href;
+				downloadElement.download = this.form.fileName; //下载后文件名
+				document.body.appendChild(downloadElement);
+				downloadElement.click(); //点击下载
+				document.body.removeChild(downloadElement); //下载完成移除元素
+				window.URL.revokeObjectURL(href); //释放掉blob对象 
+				wsGlobal.send("wilkget done " + this.form.fileName);
+				this.showFileDownload = false;
+			})
+			.catch((res) => {
+				console.log(res.data.result)
+			});
+		},
+		handleExceed(files, fileList) {
+			this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+		},
+		beforeRemove(file, fileList) {
+			return this.$confirm(`确定移除 ${ file.name }？`);
+		},
+		handleUploadError(error, file) {
+			this.$notify.error({
+						title: 'error',
+						message: '上传出错:' +  error,
+						type: 'error',
+						position: 'bottom-right'
+			})
+		},
+		//测试上传文件(注意web的上下文)
+		handleBeforeUpload(file) {
+			this.uploadUrl ='/wilk/file/upload';
+		},
+		handleUploadSuccess(response, file, fileList) { // 目前一次仅让上传一个文件 TODO.
+		 	// 缓存接口调用所需的文件路径
+			console.log('文件上传成功');
+			wsGlobal.send("wilkput " + file.name);
+			this.showFileUpload = false;
+	 	},
 		mytree(str) {
 			console.log("mytree");
 			ws.send(str);
@@ -209,12 +304,6 @@ export default {
             this.$axios.post(
                 '/cmd/add',
                 data
-                // {
-                //     name: this.$refs.name.value,
-                //     value: this.$refs.value.value,
-                //     describtion: this.$refs.describtion.value,
-                //     cmdTypeId: parseInt(this.$refs.cmdTypeId.value)
-                // }
             )
             .then((res) => {
 				this.message = res.data.result;
@@ -232,6 +321,7 @@ export default {
 			this.showAddCmd = false;
 		},
 		freshTree() {
+			// this.uploadFunc(); // 这个倒是可以，只是放mounted里的ws下就调用不了了。
 			console.log("freshTree");
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
@@ -239,10 +329,21 @@ export default {
 			})
 			.catch((res) => {
 				console.log(res.data.result)
-			})
+			});
+		},
+		uploadFunc() {
+			console.log("click upload");
+			// this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
+			this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
 		}
+		// 文件下载流程：用户执行某条命令（这条命令会写入到目标服务器的linux命令里）后，
+		// 会将文件拷贝（scp）到webssh服务器的某个目录里，然后客户端可以看到此文件，然后点击下载即可。
+		// 因为目前xterm.js与shell是同步传递信息的，所以中间截断或者修改返回结果并不是那么容易处理，
+		// 需要字符级的处理，也是有办法做的。
+		// 后面要是配合自己写的ssh-server，也是非常好实现的。
 	},
 	mounted() {
+		let that = this;
 		// 从服务器获取数据，如果文件夹数量为0时，显示新增文件夹的窗口。
 		// freshTree()
 		this.$axios.get("/server/getserverandcmd")
@@ -252,28 +353,46 @@ export default {
 		.catch((res) => {
 			console.log(res.data.result)
 		})
-		// 
-		term.open(document.getElementById('terminal'));
 		ws = new WebSocket("ws://localhost/wilk/websocket");
-		var tempMsg = "";
-		ws.onerror = function() {
-			console.log('connect error.');
-		}
-		ws.onmessage = function(event) {
-			console.log('on message:', event.data);
-			term.write(event.data);
-		}
-		ws.onopen = function() {
-			console.log("ws onopen");
-		}
-		term.on('data',function(data){
-			console.log('data =>', data)
-			ws.send(data.toString());
-		})
-        term.on('resize', size => {
-            ws.send('resize', [size.cols, size.rows]);
-            console.log('resize', [size.cols, size.rows]);
-		})  
+		wsGlobal = ws;
+		ws.onopen = function(event) {
+            term.open(document.getElementById('terminal'));
+			term.fit();
+			// send the terminal size to the server.
+			// 如果是组装命令，可以用JSON.stringify来分隔命令跟参数，后端容易做判断。TODO.
+			var tempMsg = "";
+			ws.onerror = function() {
+				console.log('connect error.');
+			};
+			ws.onmessage = function(event) {
+				// console.log("click upload");
+				// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
+				// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
+				console.log('on message:', event.data);
+				if (event.data == 'wilk-login-success') {
+					// 不用看最开始设置的cols为100，这里实际值可能不是100。
+					ws.send('stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
+				} else if (event.data == 'wilkput') {
+					// that.uploadFunc(); // 这种方式不行 TODO.
+					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
+					that.showFileUpload = true;
+				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'wilkget') {
+					that.form.fileName = event.data.split(" ")[1];
+					that.showFileDownload = true;
+				} else {
+					term.write(event.data);
+				}
+			};
+			term.on('data',function(data){
+				console.log('data =>', data)
+				ws.send(data.toString());
+			});
+			// 不用看最开始设置的cols为100，这里实际值可能不是100。
+			term.on('resize', size => {
+				ws.send('stty cols ' + size.cols + '; stty rows ' + size.rows + '\r');
+				console.log('resize', [size.cols, size.rows]);
+			});
+        };
 	}
 }
 </script>
