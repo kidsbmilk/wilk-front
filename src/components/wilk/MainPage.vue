@@ -83,6 +83,7 @@ var term = new Terminal({cols: 100,
 var ws = null;
 var nodeModelTp = null;
 var wsGlobal = null;
+var INNER_CMD_PREFIX = "WILK_IN_";
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -185,7 +186,7 @@ export default {
 				downloadElement.click(); //点击下载
 				document.body.removeChild(downloadElement); //下载完成移除元素
 				window.URL.revokeObjectURL(href); //释放掉blob对象 
-				wsGlobal.send("wilkget done " + this.form.fileName);
+				wsGlobal.send(INNER_CMD_PREFIX + "wilkget done " + this.form.fileName);
 				this.showFileDownload = false;
 			})
 			.catch((res) => {
@@ -213,7 +214,7 @@ export default {
 		handleUploadSuccess(response, file, fileList) { // 目前一次仅让上传一个文件 TODO.
 		 	// 缓存接口调用所需的文件路径
 			console.log('文件上传成功');
-			wsGlobal.send("wilkput " + file.name);
+			wsGlobal.send(INNER_CMD_PREFIX + "wilkput " + file.name);
 			this.showFileUpload = false;
 	 	},
 		mytree(str) {
@@ -371,7 +372,7 @@ export default {
 				console.log('on message:', event.data);
 				if (event.data == 'wilk-login-success') {
 					// 不用看最开始设置的cols为100，这里实际值可能不是100。
-					ws.send('stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
+					ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
 				} else if (event.data == 'wilkput') {
 					// that.uploadFunc(); // 这种方式不行 TODO.
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
@@ -389,7 +390,7 @@ export default {
 			});
 			// 不用看最开始设置的cols为100，这里实际值可能不是100。
 			term.on('resize', size => {
-				ws.send('stty cols ' + size.cols + '; stty rows ' + size.rows + '\r');
+				ws.send(INNER_CMD_PREFIX + 'stty cols ' + size.cols + '; stty rows ' + size.rows + '\r');
 				console.log('resize', [size.cols, size.rows]);
 			});
         };
