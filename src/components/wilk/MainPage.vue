@@ -373,7 +373,7 @@ export default {
 				if (event.data == 'wilk-login-success') {
 					// 不用看最开始设置的cols为100，这里实际值可能不是100。
 					ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
-				} else if (event.data == 'wilkput') {
+				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {
 					// that.uploadFunc(); // 这种方式不行 TODO.
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
 					that.showFileUpload = true;
