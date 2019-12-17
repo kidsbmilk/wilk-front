@@ -84,6 +84,7 @@ var ws = null;
 var nodeModelTp = null;
 var wsGlobal = null;
 var INNER_CMD_PREFIX = "WILK_IN_";
+var lastCmdHistory = null;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -194,7 +195,7 @@ export default {
 			});
 		},
 		handleExceed(files, fileList) {
-			this.$message.warning(`当前限制选择 5 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+			this.$message.warning(`当前限制选择1个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
 		},
 		beforeRemove(file, fileList) {
 			return this.$confirm(`确定移除 ${ file.name }？`);
@@ -216,6 +217,8 @@ export default {
 			console.log('文件上传成功');
 			wsGlobal.send(INNER_CMD_PREFIX + "wilkput " + file.name);
 			this.showFileUpload = false;
+			this.form.fileName = '';
+			this.fileList = [];
 	 	},
 		mytree(str) {
 			console.log("mytree");
@@ -356,7 +359,6 @@ export default {
 			term.fit();
 			// send the terminal size to the server.
 			// 如果是组装命令，可以用JSON.stringify来分隔命令跟参数，后端容易做判断。TODO.
-			var tempMsg = "";
 			ws.onerror = function() {
 				console.log('connect error.');
 			};
@@ -372,11 +374,20 @@ export default {
 					// that.uploadFunc(); // 这种方式不行 TODO.
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
 					that.showFileUpload = true;
+					// document.getElementById("btid").click();
 				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'wilkget') {
 					that.form.fileName = event.data.split(" ")[1];
 					that.showFileDownload = true;
 				} else {
 					term.write(event.data);
+					lastCmdHistory = event.data;
+				}
+			};
+			term.textarea.onkeydown = function(e) {
+				if(e.keyCode == 13) {
+					if (lastCmdHistory == 'wilkput') {
+						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
+					}
 				}
 			};
 			term.on('data',function(data){
