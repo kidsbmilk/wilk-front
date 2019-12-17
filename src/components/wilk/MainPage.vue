@@ -49,7 +49,7 @@
 							<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
 							:on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="1" 
 							:on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
-								<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
+								<el-button ref="uploadButton" size="small" type="primary" @click="submitUpload">点击上传</el-button>
 								<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
 							</el-upload>
 						</el-form-item>
@@ -193,7 +193,8 @@ export default {
 				this.showFileDownload = false;
 			})
 			.catch((res) => {
-				console.log(res.data.result)
+				this.showFileDownload = false;
+				console.log(res.data);
 			});
 		},
 		handleExceed(files, fileList) {
@@ -210,9 +211,11 @@ export default {
 						position: 'bottom-right'
 			})
 		},
-		//测试上传文件(注意web的上下文)
 		handleBeforeUpload(file) {
 			this.uploadUrl ='/wilk/file/upload';
+		},
+		submitUpload() {
+			this.showFileUpload = false;
 		},
 		handleUploadSuccess(response, file, fileList) { // 目前一次仅让上传一个文件 TODO.
 		 	// 缓存接口调用所需的文件路径
