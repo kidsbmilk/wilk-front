@@ -6,6 +6,7 @@
 			</div>
 			<div class='tree-div'>
 				<tree-page :mytree="mytree" :showAdd="showAdd" :showAddCmdFunc="showAddCmdFunc" :delCmdFunc="delCmdFunc" :freshTree="freshTree" v-bind:ztreeDataSourceList="ztreeDataSourceList"></tree-page>
+				<el-button v-if="isShowAddButton" @click="handleAddServerButton" size="small" type="primary">添加服务器</el-button>
 				<div v-if="showAddfolder" class = "add-server-div">
 					<input class="create-server-input" ref='serverName' placeholder="请输入服务器名，作为文件夹，不能重复" maxlength="255">
 					<input class="create-server-input" ref='serverValue' placeholder="请输入服务器值，作为第一条命令" maxlength="255">
@@ -104,6 +105,7 @@ export default {
 			showFileDownloadInput: false,
 			showFileDownload: false,
 			showFileUpload: false,
+			isShowAddButton: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -224,6 +226,10 @@ export default {
 			console.log("mytree");
 			ws.send(str);
 		},
+		handleAddServerButton() {
+			this.isShowAddButton = false;
+			this.showAdd(true);
+		},
 		showAdd(isShow) {
 			this.showAddfolder = isShow;
 		},
@@ -320,6 +326,7 @@ export default {
         },
 		cancel() {
 			this.showAddfolder = false;
+			this.isShowAddButton = true;
 		},
 		cancelCmd() {
 			this.showAddCmd = false;
@@ -330,9 +337,12 @@ export default {
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
 				this.ztreeDataSourceList = JSON.parse(res.data.result);
+				if (this.ztreeDataSourceList.length == 0) {
+					this.isShowAddButton = true;
+				}
 			})
 			.catch((res) => {
-				console.log(res.data.result)
+				console.log(res.data);
 			});
 		},
 		uploadFunc() {
@@ -343,15 +353,7 @@ export default {
 	},
 	mounted() {
 		let that = this;
-		// 从服务器获取数据，如果文件夹数量为0时，显示新增文件夹的窗口。
-		// freshTree()
-		this.$axios.get("/server/getserverandcmd")
-		.then((res) => {
-			this.ztreeDataSourceList = JSON.parse(res.data.result);
-		})
-		.catch((res) => {
-			console.log(res.data.result)
-		})
+		this.freshTree()
 		ws = new WebSocket("ws://localhost/wilk/websocket");
 		wsGlobal = ws;
 		ws.onopen = function(event) {
