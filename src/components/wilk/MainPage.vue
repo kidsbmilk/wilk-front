@@ -387,6 +387,8 @@ export default {
 				if(e.keyCode == 13) {
 					if (lastCmdHistory == 'wilkput') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
+					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
+						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
 					}
 				}
 			};
