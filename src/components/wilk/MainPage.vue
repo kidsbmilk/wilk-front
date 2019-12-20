@@ -86,6 +86,7 @@ var nodeModelTp = null;
 var wsGlobal = null;
 var INNER_CMD_PREFIX = "WILK_IN_";
 var lastCmdHistory = null;
+var isLastTAB = false;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -174,6 +175,7 @@ export default {
 	methods: {
 		handleDownLoad() {
 			// window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
+			// 判断文件名是否为空，弹窗提示 TODO.
 			this.$axios({
 				method: 'get',
 				url: '/file/download?fileName=' + this.form.fileName,
@@ -190,6 +192,7 @@ export default {
 				document.body.removeChild(downloadElement); //下载完成移除元素
 				window.URL.revokeObjectURL(href); //释放掉blob对象 
 				wsGlobal.send(INNER_CMD_PREFIX + "wilkget done " + this.form.fileName);
+				that.form.fileName = '';
 				this.showFileDownload = false;
 			})
 			.catch((res) => {
@@ -380,25 +383,34 @@ export default {
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
 					that.showFileUpload = true;
 					// document.getElementById("btid").click();
-				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'wilkget') {
-					that.form.fileName = event.data.split(" ")[1];
+				} else if (event.data.split(" ").length == 3 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkget') {
+					that.form.fileName = event.data.split(" ")[2];
 					that.showFileDownload = true;
 				} else {
 					term.write(event.data);
 					lastCmdHistory = event.data;
+					if (isLastTAB) {
+						ws.send(INNER_CMD_PREFIX + "TAB" + lastCmdHistory);
+						isLastTAB = false;
+					}
 				}
 			};
 			term.textarea.onkeydown = function(e) {
+				isLastTAB = false;
 				if(e.keyCode == 13) {
 					if (lastCmdHistory == 'wilkput') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
 					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
 					}
+				} else if (e.keyCode == 8) {
+					ws.send(INNER_CMD_PREFIX + "BS");
+				} else if (e.keyCode == 9) {
+					isLastTAB = true;
 				}
 			};
 			term.on('data',function(data){
-				console.log('data =>', data)
+				console.log('data =>', data);
 				ws.send(data.toString());
 			});
 			// 不用看最开始设置的cols为100，这里实际值可能不是100。
