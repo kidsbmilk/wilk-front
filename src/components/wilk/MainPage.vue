@@ -390,6 +390,7 @@ export default {
 					term.write(event.data);
 					lastCmdHistory = event.data;
 					if (isLastTAB) {
+						console.log(event.data.length);
 						ws.send(INNER_CMD_PREFIX + "TAB" + lastCmdHistory);
 						isLastTAB = false;
 					}
