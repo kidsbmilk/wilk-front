@@ -87,6 +87,8 @@ var wsGlobal = null;
 var INNER_CMD_PREFIX = "WILK_IN_";
 var lastCmdHistory = null;
 var isLastTAB = false;
+var isLastUp = false;
+var isLastDown = false;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -390,24 +392,43 @@ export default {
 					term.write(event.data);
 					lastCmdHistory = event.data;
 					if (isLastTAB) {
-						console.log(event.data.length);
+						// console.log(event.data.length);
 						ws.send(INNER_CMD_PREFIX + "TAB" + lastCmdHistory);
 						isLastTAB = false;
+					} else if (isLastUp) {
+						ws.send(INNER_CMD_PREFIX + "UP" + lastCmdHistory);
+						isLastUp = false;
+					} else if (isLastDown) {
+						ws.send(INNER_CMD_PREFIX + "DOWN" + lastCmdHistory);
+						isLastDown = false;
 					}
 				}
 			};
 			term.textarea.onkeydown = function(e) {
+				// https://www.cnblogs.com/gygg/p/11359598.html
+				// https://zhidao.baidu.com/question/6865495.html
+				// http://www.51hei.com/bbs/dpj-139731-1.html
 				isLastTAB = false;
-				if(e.keyCode == 13) {
+				isLastUp = false;
+				isLastDown = false;
+				if(e.keyCode == 13) { // Enter，这个也是上下键选择的下载，之前用history方式记录了，得优化一下 TODO.
 					if (lastCmdHistory == 'wilkput') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
 					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
 					}
-				} else if (e.keyCode == 8) {
+				} else if (e.keyCode == 8) { // BackSpace
 					ws.send(INNER_CMD_PREFIX + "BS");
-				} else if (e.keyCode == 9) {
+				} else if (e.keyCode == 9) { // Tab
 					isLastTAB = true;
+				} else if (e.keyCode == 37) { // Left Arrow
+					;
+				} else if (e.keyCode == 38) { // Up Arrow
+					isLastUp = true;
+				} else if (e.keyCode == 39) { // Right Arrow
+					;
+				} else if (e.keyCode == 40) { // Down Arrow
+					isLastDown = true;
 				}
 			};
 			term.on('data',function(data){
