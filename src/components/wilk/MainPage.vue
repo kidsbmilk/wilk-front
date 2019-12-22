@@ -6,6 +6,7 @@
 			</div>
 			<div class='tree-div'>
 				<tree-page :mytree="mytree" :showAdd="showAdd" :showAddCmdFunc="showAddCmdFunc" :delCmdFunc="delCmdFunc" :freshTree="freshTree" v-bind:ztreeDataSourceList="ztreeDataSourceList"></tree-page>
+				<el-button v-if="isShowAddButton" @click="handleAddServerButton" size="small" type="primary">添加服务器</el-button>
 				<div v-if="showAddfolder" class = "add-server-div">
 					<input class="create-server-input" ref='serverName' placeholder="请输入服务器名，作为文件夹，不能重复" maxlength="255">
 					<input class="create-server-input" ref='serverValue' placeholder="请输入服务器值，作为第一条命令" maxlength="255">
@@ -48,7 +49,7 @@
 							<el-upload class="upload-demo" :action="uploadUrl" :before-upload="handleBeforeUpload"
 							:on-error="handleUploadError" :before-remove="beforeRemove" multiple :limit="1" 
 							:on-exceed="handleExceed" :file-list="fileList" :on-success="handleUploadSuccess" >
-								<el-button ref="uploadButton" size="small" type="primary">点击上传</el-button>
+								<el-button ref="uploadButton" size="small" type="primary" @click="submitUpload">点击上传</el-button>
 								<!-- <div slot="tip" class="el-upload__tip">一次文件不超过50MB</div> -->
 							</el-upload>
 						</el-form-item>
@@ -85,6 +86,7 @@ var nodeModelTp = null;
 var wsGlobal = null;
 var INNER_CMD_PREFIX = "WILK_IN_";
 var lastCmdHistory = null;
+var isLastTAB = false;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -104,6 +106,7 @@ export default {
 			showFileDownloadInput: false,
 			showFileDownload: false,
 			showFileUpload: false,
+			isShowAddButton: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
 			ztreeDataSourceList:[{
@@ -172,6 +175,7 @@ export default {
 	methods: {
 		handleDownLoad() {
 			// window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
+			// 判断文件名是否为空，弹窗提示 TODO.
 			this.$axios({
 				method: 'get',
 				url: '/file/download?fileName=' + this.form.fileName,
@@ -188,10 +192,12 @@ export default {
 				document.body.removeChild(downloadElement); //下载完成移除元素
 				window.URL.revokeObjectURL(href); //释放掉blob对象 
 				wsGlobal.send(INNER_CMD_PREFIX + "wilkget done " + this.form.fileName);
+				that.form.fileName = '';
 				this.showFileDownload = false;
 			})
 			.catch((res) => {
-				console.log(res.data.result)
+				this.showFileDownload = false;
+				console.log(res.data);
 			});
 		},
 		handleExceed(files, fileList) {
@@ -208,9 +214,11 @@ export default {
 						position: 'bottom-right'
 			})
 		},
-		//测试上传文件(注意web的上下文)
 		handleBeforeUpload(file) {
 			this.uploadUrl ='/wilk/file/upload';
+		},
+		submitUpload() {
+			this.showFileUpload = false;
 		},
 		handleUploadSuccess(response, file, fileList) { // 目前一次仅让上传一个文件 TODO.
 		 	// 缓存接口调用所需的文件路径
@@ -223,6 +231,10 @@ export default {
 		mytree(str) {
 			console.log("mytree");
 			ws.send(str);
+		},
+		handleAddServerButton() {
+			this.isShowAddButton = false;
+			this.showAdd(true);
 		},
 		showAdd(isShow) {
 			this.showAddfolder = isShow;
@@ -320,6 +332,7 @@ export default {
         },
 		cancel() {
 			this.showAddfolder = false;
+			this.isShowAddButton = true;
 		},
 		cancelCmd() {
 			this.showAddCmd = false;
@@ -330,9 +343,12 @@ export default {
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
 				this.ztreeDataSourceList = JSON.parse(res.data.result);
+				if (this.ztreeDataSourceList.length == 0) {
+					this.isShowAddButton = true;
+				}
 			})
 			.catch((res) => {
-				console.log(res.data.result)
+				console.log(res.data);
 			});
 		},
 		uploadFunc() {
@@ -343,15 +359,7 @@ export default {
 	},
 	mounted() {
 		let that = this;
-		// 从服务器获取数据，如果文件夹数量为0时，显示新增文件夹的窗口。
-		// freshTree()
-		this.$axios.get("/server/getserverandcmd")
-		.then((res) => {
-			this.ztreeDataSourceList = JSON.parse(res.data.result);
-		})
-		.catch((res) => {
-			console.log(res.data.result)
-		})
+		this.freshTree()
 		ws = new WebSocket("ws://localhost/wilk/websocket");
 		wsGlobal = ws;
 		ws.onopen = function(event) {
@@ -375,25 +383,35 @@ export default {
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
 					that.showFileUpload = true;
 					// document.getElementById("btid").click();
-				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'wilkget') {
-					that.form.fileName = event.data.split(" ")[1];
+				} else if (event.data.split(" ").length == 3 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkget') {
+					that.form.fileName = event.data.split(" ")[2];
 					that.showFileDownload = true;
 				} else {
 					term.write(event.data);
 					lastCmdHistory = event.data;
+					if (isLastTAB) {
+						console.log(event.data.length);
+						ws.send(INNER_CMD_PREFIX + "TAB" + lastCmdHistory);
+						isLastTAB = false;
+					}
 				}
 			};
 			term.textarea.onkeydown = function(e) {
+				isLastTAB = false;
 				if(e.keyCode == 13) {
 					if (lastCmdHistory == 'wilkput') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
 					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
 					}
+				} else if (e.keyCode == 8) {
+					ws.send(INNER_CMD_PREFIX + "BS");
+				} else if (e.keyCode == 9) {
+					isLastTAB = true;
 				}
 			};
 			term.on('data',function(data){
-				console.log('data =>', data)
+				console.log('data =>', data);
 				ws.send(data.toString());
 			});
 			// 不用看最开始设置的cols为100，这里实际值可能不是100。
