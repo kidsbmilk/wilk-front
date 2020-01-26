@@ -421,14 +421,8 @@ export default {
 					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
 					}
-				} else if (e.keyCode == 8 && isLastLeftOrRight == false) { // BackSpace
-					ws.send(INNER_CMD_PREFIX + "BS");
-				} else if (e.keyCode == 8 && isLastLeftOrRight == true) {
-					isBSOnLeftOrRight = true;
 				} else if (e.keyCode == 9) { // Tab
 					isLastTAB = true;
-				} else if (e.keyCode == 37 || e.keyCode == 39) { // Left or Right Arrow
-					isLastLeftOrRight = true;
 				} else if (e.keyCode == 38 || e.keyCode == 40) { // Up or Down Arrow
 					isLastUpOrDown = true;
 				}
