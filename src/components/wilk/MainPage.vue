@@ -86,10 +86,6 @@ var nodeModelTp = null;
 var wsGlobal = null;
 var INNER_CMD_PREFIX = "WILK_IN_";
 var lastCmdHistory = null;
-var isLastTAB = false;
-var isLastUpOrDown = false;
-var isLastLeftOrRight = false;
-var isBSOnLeftOrRight = false;
 
 // https://www.cnblogs.com/freefei/p/8976802.html
 
@@ -390,21 +386,6 @@ export default {
 				} else {
 					term.write(event.data);
 					lastCmdHistory = event.data;
-					if (isLastTAB) {
-						// console.log(event.data.length);
-						ws.send(INNER_CMD_PREFIX + "TAB" + lastCmdHistory);
-						isLastTAB = false;
-					} else if (isLastUpOrDown) {
-						ws.send(INNER_CMD_PREFIX + "UPORDOWN" + lastCmdHistory);
-						isLastUpOrDown = false;
-					} else if (isLastLeftOrRight) {
-						if (isBSOnLeftOrRight) {
-							ws.send(INNER_CMD_PREFIX + "LEFTORRIGHTBS" + lastCmdHistory);
-							isBSOnLeftOrRight = false;
-						} else {
-							ws.send(INNER_CMD_PREFIX + "LEFTORRIGHT" + lastCmdHistory);
-						}
-					}
 				}
 			};
 			term.textarea.onkeydown = function(e) {
@@ -412,19 +393,11 @@ export default {
 				// https://zhidao.baidu.com/question/6865495.html
 				// http://www.51hei.com/bbs/dpj-139731-1.html
 				if(e.keyCode == 13) { // Enter，这个也是上下键选择的下载，之前用history方式记录了，得优化一下 TODO.
-					isLastTAB = false;
-					isLastUpOrDown = false;
-					isLastLeftOrRight = false;
-					isBSOnLeftOrRight = false;
 					if (lastCmdHistory == 'wilkput') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
 					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
 						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
 					}
-				} else if (e.keyCode == 9) { // Tab
-					isLastTAB = true;
-				} else if (e.keyCode == 38 || e.keyCode == 40) { // Up or Down Arrow
-					isLastUpOrDown = true;
 				}
 			};
 			term.on('data',function(data){
