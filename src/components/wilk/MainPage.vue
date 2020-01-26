@@ -368,6 +368,7 @@ export default {
 		ws.onopen = function(event) {
             term.open(document.getElementById('terminal'));
 			term.fit();
+			ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
 			// send the terminal size to the server.
 			// 如果是组装命令，可以用JSON.stringify来分隔命令跟参数，后端容易做判断。TODO.
 			ws.onerror = function() {
@@ -378,10 +379,7 @@ export default {
 				// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
 				// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
 				console.log('on message:', event.data);
-				if (event.data == 'wilk-login-success') {
-					// 不用看最开始设置的cols为100，这里实际值可能不是100。
-					ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
-				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {
+				if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {
 					// that.uploadFunc(); // 这种方式不行 TODO.
 					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
 					that.showFileUpload = true;
