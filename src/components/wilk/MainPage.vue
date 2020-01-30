@@ -172,6 +172,12 @@ export default {
     //   }
     // },
 	methods: {
+		solveLoginRedirection(res) {
+			console.log("solve redict: " + res.data);
+			if (res != null && res.data.success == false && res.data.failMsg == 'login') {
+                this.$router.push('/loginpage');
+            }
+		},
 		handleDownLoad() {
 			// window.location.href = '/wilk/file/download?fileName=' + this.form.fileName;
 			// 判断文件名是否为空，弹窗提示 TODO.
@@ -181,6 +187,7 @@ export default {
 				responseType: 'blob'
 			})
 			.then((res) => {
+				this.solveLoginRedirection(res);
 				var blob = new Blob([res.data])
 				var downloadElement = document.createElement('a');
 				var href = window.URL.createObjectURL(blob); //创建下载的链接
@@ -259,6 +266,7 @@ export default {
                 data
             )
             .then((res) => {
+				this.solveLoginRedirection(res);
 				this.message = res.data.result;
 				this.freshTree();
             })
@@ -290,6 +298,7 @@ export default {
                 // }
             )
             .then((res) => {
+				this.solveLoginRedirection(res);
 				this.message = res.data.result;
 				this.showAddfolder = false;
 				this.freshTree();
@@ -321,6 +330,7 @@ export default {
                 data
             )
             .then((res) => {
+				this.solveLoginRedirection(res);
 				this.message = res.data.result;
 				this.showAddCmd = false;
 				this.freshTree();
@@ -341,6 +351,7 @@ export default {
 			console.log("freshTree");
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
+				this.solveLoginRedirection(res);
 				this.ztreeDataSourceList = JSON.parse(res.data.result);
 				if (this.ztreeDataSourceList.length == 0) {
 					this.isShowAddButton = true;
