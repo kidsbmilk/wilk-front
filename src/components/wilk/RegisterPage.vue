@@ -59,6 +59,9 @@ export default {
                 console.log(res.data.result)
             })
         }
+    },
+    mounted() {
+        document.title = "注册页";
     }
 }
 </script>
