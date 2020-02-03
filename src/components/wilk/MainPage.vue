@@ -74,13 +74,7 @@ Vue.use(ElementUI) //使用elementUI
 
 Terminal.applyAddon(fit)
 Terminal.applyAddon(attach)
-var term = new Terminal({cols: 100,
-                  rows: 42,
-                  cursorBlink: 5,
-                  scrollback: 1000,
-				  tabStopWidth: 4,
-				//   fontSize: 12
-			  });
+var term = null;
 var ws = null;
 var nodeModelTp = null;
 var wsGlobal = null;
@@ -175,7 +169,7 @@ export default {
 		solveLoginRedirection(res) {
 			console.log("solve redict: " + res.data);
 			if (res != null && res.data.success == false && res.data.failMsg == 'login') {
-                this.$router.push('/loginpage');
+                this.$router.replace('/loginpage');
             }
 		},
 		handleDownLoad() {
@@ -368,6 +362,13 @@ export default {
 		}
 	},
 	mounted() {
+		term = new Terminal({cols: 100,
+					rows: 42,
+                  	cursorBlink: 5,
+                  	scrollback: 1000,
+				  	tabStopWidth: 4,
+				  	// fontSize: 12
+			  	});
 		let that = this;
 		this.freshTree()
 		ws = new WebSocket("ws://localhost/wilk/websocket");
