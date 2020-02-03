@@ -61,6 +61,7 @@ export default {
     mounted() {
         document.title = "登录页";
         if (this.$cookies.get('status') === "logined") {
+            document.title = "wilk主页";
             this.$router.push('/mainpage');
         }
     }

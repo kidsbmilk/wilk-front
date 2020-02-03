@@ -186,7 +186,8 @@ export default {
 		solveLoginRedirection(res) {
 			console.log("solve redict: " + res.data);
 			if (res != null && res.data.success == false && res.data.failMsg == 'login') {
-                this.$router.replace('/loginpage');
+				this.$cookies.set('status', null);
+				this.$router.replace('/loginpage');
             }
 		},
 		handleDownLoad() {
