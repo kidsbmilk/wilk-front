@@ -20,6 +20,10 @@ var a2h = require('ansi2html-extended');
 
 var cookies = require('vue-cookies')
 
+function setDocumentTitle(titleStr) {
+  document.title = titleStr;
+}
+
 Vue.use(VueContextMenu)
 Vue.use($cookies)
 Vue.prototype.$qs = qs
@@ -38,24 +42,18 @@ new Vue({
 })
 
 router.beforeEach((to, from, next) => {
+  console.log(router.app.$cookies.get("status"));
+  to.meta && (typeof to.meta.title !== 'undefined' && setDocumentTitle(`${to.meta.title}`))
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (router.app.$cookies.get("status") !== "logined") {
+    if (!router.app.$cookies.get("status") === "logined") { // 注意：是！...===，写成别的不行
       next({
-        path: '/login',
-        query: { redirect: to.fullPath } // 把要跳转的地址作为参数传到下一步
+        path: '/loginpage',
+        query: { redirect: to.fullPath }
       })
-    } else {
-      next()
-    }
-  } else {
-    if (to.query && to.query.redirect) {
-      if (router.app.$cookies.get("status") === "logined") {
-        next({path: to.query.redirect})
-      } else {
-        next()
-      }
     } else {
       next() // 确保一定要调用 next()
     }
+  } else {
+    next() // 确保一定要调用 next()
   }
 })
