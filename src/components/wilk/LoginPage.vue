@@ -48,7 +48,7 @@ export default {
                 if(res.data.result == 'index') {
                     // this.$cookies.set('id', getCookie('id'), 30 * 60);
                     // this.$cookies.set('username', getCookie('username'), 30 * 60);
-                    // this.$cookies.set('status', getCookie('status'), 30 * 60);
+                    this.$cookies.set('status', getCookie('status'), 30 * 60);
                     this.$router.push('/mainpage');
                 }
                 this.message = res.data.result
@@ -56,6 +56,13 @@ export default {
             .catch((res) => {
                 console.log(res.data.result)
             })
+        }
+    },
+    mounted() {
+        document.title = "登录页";
+        if (this.$cookies.get('status') === "logined") {
+            document.title = "wilk主页";
+            this.$router.push('/mainpage');
         }
     }
 }

@@ -87,6 +87,76 @@ export default {
 	name: 'MainPage',
 	components: { treePage },
 	data() {
+		// return {
+		// 	form: {
+		// 		fileName: '',
+		// 	},
+		// 	uploadUrl: '/wilk/file/upload',
+		// 	fileList: [],
+		// 	showAddfolder: false,
+		// 	showAddCmd: false,
+		// 	showFile: true,
+		// 	showFileDownloadInput: false,
+		// 	showFileDownload: false,
+		// 	showFileUpload: false,
+		// 	isShowAddButton: false,
+		// 	message: '',
+		// 	msg: 'Hello Vue-Ztree-2.0!',
+		// 	ztreeDataSourceList:[{
+		// 		// 这部分传成json就可以了。
+		// 		id:880,
+		// 		name:"测试环境1",
+		// 		iconClass:"iconClassRoot",
+		// 		open:true,
+		// 		parentId:0,
+		// 		children:[{
+		// 			id:881,
+		// 			name:"c3-miui-ad-traffic00.bj",
+		// 			parentId:880,
+		// 			iconClass:"iconClassNode",
+		// 		},{
+		// 			id:882,
+		// 			name:"mysql -h 10.118.22.101 -umiui_ad_sched_wr -pg0R6bg3hpL1bg7I371jYyyoL5014Baeb --default-character-set=utf8 -D miui_ad_schedule",
+		// 			parentId:880,
+		// 			iconClass:"iconClassNode",
+		// 		}]
+		// 	},{
+		// 		id:990,
+		// 		name:"测试环境2",
+		// 		iconClass:"iconClassRoot",
+		// 		open:true,
+		// 		parentId:0,
+		// 		children:[{
+		// 			id:991,
+		// 			name:"c3-miui-ad-traffic00",
+		// 			parentId:990,
+		// 			iconClass:"iconClassNode",
+		// 		},{
+		// 			id:992,
+		// 			name:"cd /home/rd/wangming1/miui-ad-schedule-web",
+		// 			parentId:990,
+		// 			iconClass:"iconClassNode",
+		// 		}]
+		// 	},
+		// 	{
+		// 		id:993,
+		// 		name:"测试环境3",
+		// 		iconClass:"iconClassRoot",
+		// 		open:true,
+		// 		parentId:0,
+		// 		children:[{
+		// 			id:996,
+		// 			name:"c4-miui-ad-sup17.bj",
+		// 			parentId:993,
+		// 			iconClass:"iconClassNode",
+		// 		},{
+		// 			id:997,
+		// 			name:"cd /home/work/log/miui-ad-schedule-web",
+		// 			parentId:993,
+		// 			iconClass:"iconClassNode",
+		// 		}]
+		// 	}]
+		// }
 		return {
 			form: {
 				fileName: '',
@@ -102,60 +172,7 @@ export default {
 			isShowAddButton: false,
 			message: '',
 			msg: 'Hello Vue-Ztree-2.0!',
-			ztreeDataSourceList:[{
-				// 这部分传成json就可以了。
-				id:880,
-				name:"测试环境1",
-				iconClass:"iconClassRoot",
-				open:true,
-				parentId:0,
-				children:[{
-					id:881,
-					name:"c3-miui-ad-traffic00.bj",
-					parentId:880,
-					iconClass:"iconClassNode",
-				},{
-					id:882,
-					name:"mysql -h 10.118.22.101 -umiui_ad_sched_wr -pg0R6bg3hpL1bg7I371jYyyoL5014Baeb --default-character-set=utf8 -D miui_ad_schedule",
-					parentId:880,
-					iconClass:"iconClassNode",
-				}]
-			},{
-				id:990,
-				name:"测试环境2",
-				iconClass:"iconClassRoot",
-				open:true,
-				parentId:0,
-				children:[{
-					id:991,
-					name:"c3-miui-ad-traffic00",
-					parentId:990,
-					iconClass:"iconClassNode",
-				},{
-					id:992,
-					name:"cd /home/rd/wangming1/miui-ad-schedule-web",
-					parentId:990,
-					iconClass:"iconClassNode",
-				}]
-			},
-			{
-				id:993,
-				name:"测试环境3",
-				iconClass:"iconClassRoot",
-				open:true,
-				parentId:0,
-				children:[{
-					id:996,
-					name:"c4-miui-ad-sup17.bj",
-					parentId:993,
-					iconClass:"iconClassNode",
-				},{
-					id:997,
-					name:"cd /home/work/log/miui-ad-schedule-web",
-					parentId:993,
-					iconClass:"iconClassNode",
-				}]
-			}]
+			ztreeDataSourceList:[]
 		}
 	},
 	// watch: {
@@ -169,7 +186,8 @@ export default {
 		solveLoginRedirection(res) {
 			console.log("solve redict: " + res.data);
 			if (res != null && res.data.success == false && res.data.failMsg == 'login') {
-                this.$router.replace('/loginpage');
+				this.$cookies.set('status', null);
+				this.$router.replace('/loginpage');
             }
 		},
 		handleDownLoad() {
@@ -362,6 +380,10 @@ export default {
 		}
 	},
 	mounted() {
+		document.title = "wilk主页";
+		if (!this.$cookies.get('status') === "logined") {
+            return ;
+        }
 		term = new Terminal({cols: 100,
 					rows: 42,
                   	cursorBlink: 5,
