@@ -185,7 +185,7 @@ export default {
 	methods: {
 		solveLoginRedirection(res) {
 			console.log("solve redict: " + res.data);
-			if (res != null && res.data.code == 0 && res.data.desc == 'login') {
+			if (res != null && res.data.code != 0 && res.data.desc == 'login') {
 				this.$cookies.set('status', null);
 				this.$router.replace('/loginpage');
             }
@@ -363,10 +363,12 @@ export default {
 			console.log("freshTree");
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
+				console.log(res);
 				this.solveLoginRedirection(res);
-				this.ztreeDataSourceList = JSON.parse(res.data.result);
-				if (this.ztreeDataSourceList.length == 0) {
+				if (res.data.result.length == 0) {
 					this.isShowAddButton = true;
+				} else {
+					this.ztreeDataSourceList = res.data.result;
 				}
 			})
 			.catch((res) => {
