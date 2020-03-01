@@ -51,12 +51,6 @@ export default {
             this.$axios.post(
                 '/cmd/add',
                 data
-                // {
-                //     name: this.$refs.name.value,
-                //     value: this.$refs.value.value,
-                //     describtion: this.$refs.describtion.value,
-                //     cmdTypeId: parseInt(this.$refs.cmdTypeId.value)
-                // }
             )
             .then((res) => {
                 this.message = res.data.result;

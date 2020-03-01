@@ -185,7 +185,7 @@ export default {
 	methods: {
 		solveLoginRedirection(res) {
 			console.log("solve redict: " + res.data);
-			if (res != null && res.data.success == false && res.data.failMsg == 'login') {
+			if (res != null && res.data.code == 0 && res.data.desc == 'login') {
 				this.$cookies.set('status', null);
 				this.$router.replace('/loginpage');
             }
@@ -262,17 +262,17 @@ export default {
 			this.showAddCmd = isShow;
 			nodeModelTp = nodeModel;
 		},
-		delCmdFunc(isChildren, nodeModel) {
-			console.log("delCmdFunc");
-			console.log(nodeModel.id);
+		delCmdFunc(isChildren, nodeId, parentId) {
+			console.log("delCmdFunc: nodeId: " + nodeId + "parentId: " + parentId);
+			var data = new URLSearchParams();
+			data.append("cmdId", nodeId);
 			var url = "";
 			if (isChildren) {
 				url = "/cmd/delete";
+				data.append("serverId", parentId);
 			} else {
 				url = "/server/delete";
 			}
-			var data = new URLSearchParams();
-            data.append("deletedId", nodeModel.id);
             this.$axios.post(
                 url,
                 data
@@ -406,7 +406,7 @@ export default {
 				// console.log("click upload");
 				// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
 				// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
-				console.log('on message:', event.data);
+				// console.log('on message:', event.data);
 				if (event.data == 'wilk-login-success') {
 					ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
 				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {

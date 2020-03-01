@@ -53,10 +53,14 @@ export default {
             })
             .then((res) => {
                 this.message = res.data.result
-                this.$router.push({path: '/loginpage'});
+                if (res != null && res.data.code == 0) {
+                    this.$router.replace('/loginpage');
+                } else {
+                    console.log(res);
+                }
             })
             .catch((res) => {
-                console.log(res.data.result)
+                console.log(res);
             })
         }
     },
