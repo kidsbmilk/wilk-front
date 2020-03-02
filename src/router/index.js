@@ -3,8 +3,6 @@ import Router from 'vue-router'
 import MainPage from '@/components/wilk/MainPage'
 import RegisterPage from '@/components/wilk/RegisterPage'
 import LoginPage from '@/components/wilk/LoginPage'
-import AddCmdPage from '@/components/wilk/AddCmdPage'
-import TreePage from '@/components/wilk/TreePage'
 
 Vue.use(Router)
 
@@ -32,16 +30,6 @@ export default new Router({
       name: 'LoginPage',
       component: LoginPage,
       meta: { title: '登录页' , requiresAuth: false}
-    },
-    {
-      path: '/addcmdpage',
-      name: 'AddCmdPage',
-      component: AddCmdPage
-    },
-    {
-      path: '/treepage',
-      name: 'TreePage',
-      component: TreePage
     }
   ]
 })

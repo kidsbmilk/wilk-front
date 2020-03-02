@@ -182,9 +182,9 @@ export default {
         console.log("addNode2");
         this.showAddCmdFunc(true, nodeModel);
     },
-    delNode2(isChildren, nodeModel) {
+    delNode2(isChildren, nodeId, parentId) {
       console.log("delNode2");
-      this.delCmdFunc(isChildren, nodeModel);
+      this.delCmdFunc(isChildren, nodeId, parentId);
     },
     freshTreeHere () {
         console.log("freshTreeHere");

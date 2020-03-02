@@ -20,9 +20,9 @@
 					<input class="create-server-input" ref='describtion' placeholder="请输入命令描述" maxlength="255">
 					<div class='create-user-select'>
 						<span>命令类型: </span>
-						<select ref='cmdTypeId'>
-							<option value = '1'>普通命令</option>
-							<option value = '2'>服务器地址</option>
+						<select ref='cmdType'>
+							<option value = '0'>普通命令</option>
+							<option value = '1'>服务器地址</option>
 						</select>
 					</div>
 					<button v-on:click="addCmd">增加命令</button>
@@ -185,7 +185,7 @@ export default {
 	methods: {
 		solveLoginRedirection(res) {
 			console.log("solve redict: " + res.data);
-			if (res != null && res.data.success == false && res.data.failMsg == 'login') {
+			if (res != null && res.data.code != 0 && res.data.desc == 'login') {
 				this.$cookies.set('status', null);
 				this.$router.replace('/loginpage');
             }
@@ -262,17 +262,18 @@ export default {
 			this.showAddCmd = isShow;
 			nodeModelTp = nodeModel;
 		},
-		delCmdFunc(isChildren, nodeModel) {
-			console.log("delCmdFunc");
-			console.log(nodeModel.id);
+		delCmdFunc(isChildren, nodeId, parentId) {
+			console.log("delCmdFunc: nodeId: " + nodeId + "parentId: " + parentId);
+			var data = new URLSearchParams();
 			var url = "";
 			if (isChildren) {
 				url = "/cmd/delete";
+				data.append("cmdId", nodeId);
+				data.append("serverId", parentId);
 			} else {
 				url = "/server/delete";
+				data.append("serverId", nodeId);
 			}
-			var data = new URLSearchParams();
-            data.append("deletedId", nodeModel.id);
             this.$axios.post(
                 url,
                 data
@@ -302,12 +303,6 @@ export default {
             this.$axios.post(
                 '/server/add',
                 data
-                // {
-                //     name: this.$refs.name.value,
-                //     value: this.$refs.value.value,
-                //     describtion: this.$refs.describtion.value,
-                //     cmdTypeId: parseInt(this.$refs.cmdTypeId.value)
-                // }
             )
             .then((res) => {
 				this.solveLoginRedirection(res);
@@ -335,7 +330,7 @@ export default {
             data.append("name", this.$refs.name.value);
             data.append("value", this.$refs.value.value);
             data.append("describtion", this.$refs.describtion.value);
-			data.append("cmdTypeId", parseInt(this.$refs.cmdTypeId.value));
+			data.append("cmdType", parseInt(this.$refs.cmdType.value));
 			data.append("serverId", nodeModelTp.id);
             this.$axios.post(
                 '/cmd/add',
@@ -363,10 +358,12 @@ export default {
 			console.log("freshTree");
 			this.$axios.get("/server/getserverandcmd")
 			.then((res) => {
+				console.log(res);
 				this.solveLoginRedirection(res);
-				this.ztreeDataSourceList = JSON.parse(res.data.result);
-				if (this.ztreeDataSourceList.length == 0) {
+				if (res.data.result.length == 0) {
 					this.isShowAddButton = true;
+				} else {
+					this.ztreeDataSourceList = res.data.result;
 				}
 			})
 			.catch((res) => {
@@ -406,7 +403,7 @@ export default {
 				// console.log("click upload");
 				// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
 				// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
-				console.log('on message:', event.data);
+				// console.log('on message:', event.data);
 				if (event.data == 'wilk-login-success') {
 					ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
 				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {
