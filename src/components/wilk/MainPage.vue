@@ -20,9 +20,9 @@
 					<input class="create-server-input" ref='describtion' placeholder="请输入命令描述" maxlength="255">
 					<div class='create-user-select'>
 						<span>命令类型: </span>
-						<select ref='cmdTypeId'>
-							<option value = '1'>普通命令</option>
-							<option value = '2'>服务器地址</option>
+						<select ref='cmdType'>
+							<option value = '0'>普通命令</option>
+							<option value = '1'>服务器地址</option>
 						</select>
 					</div>
 					<button v-on:click="addCmd">增加命令</button>
@@ -265,13 +265,14 @@ export default {
 		delCmdFunc(isChildren, nodeId, parentId) {
 			console.log("delCmdFunc: nodeId: " + nodeId + "parentId: " + parentId);
 			var data = new URLSearchParams();
-			data.append("cmdId", nodeId);
 			var url = "";
 			if (isChildren) {
 				url = "/cmd/delete";
+				data.append("cmdId", nodeId);
 				data.append("serverId", parentId);
 			} else {
 				url = "/server/delete";
+				data.append("serverId", nodeId);
 			}
             this.$axios.post(
                 url,
@@ -302,12 +303,6 @@ export default {
             this.$axios.post(
                 '/server/add',
                 data
-                // {
-                //     name: this.$refs.name.value,
-                //     value: this.$refs.value.value,
-                //     describtion: this.$refs.describtion.value,
-                //     cmdTypeId: parseInt(this.$refs.cmdTypeId.value)
-                // }
             )
             .then((res) => {
 				this.solveLoginRedirection(res);
@@ -335,7 +330,7 @@ export default {
             data.append("name", this.$refs.name.value);
             data.append("value", this.$refs.value.value);
             data.append("describtion", this.$refs.describtion.value);
-			data.append("cmdTypeId", parseInt(this.$refs.cmdTypeId.value));
+			data.append("cmdType", parseInt(this.$refs.cmdType.value));
 			data.append("serverId", nodeModelTp.id);
             this.$axios.post(
                 '/cmd/add',
