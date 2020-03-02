@@ -434,9 +434,9 @@ export default{
             console.log("addNode1");
             this.addNode2(nodeModel);
         },
-        delNode1(isChildren, nodeModel) {
+        delNode1(isChildren, nodeId, parentId) {
             console.log("delNode1");
-            this.delNode2(isChildren, nodeModel);
+            this.delNode2(isChildren, nodeId, parentId);
         },
         initTreeData(){
             var tempList = JSON.parse(JSON.stringify(this.list));
@@ -634,17 +634,19 @@ export default{
 			    // 删除节点
 			    delNode(nodeModel){
 			        if(nodeModel) {
+                        // 下面这个判断其实没太大必要，v-if里已经判断了不允许删除非空的文件夹
+                        if (nodeModel.hasOwnProperty("children")) {
+                            if (nodeModel.children.length > 0) {
+                                return;
+                            }
+                        }
 			           if(this.parentNodeModel.hasOwnProperty("children")) {
 			              this.parentNodeModel.children.splice(this.parentNodeModel.children.indexOf(nodeModel),1);
-                          this.$parent.delNode1(true, nodeModel);
-                       }else if(this.parentNodeModel instanceof Array){
-                          if (nodeModel.children.length > 0) {
-                              return;
-                          }
-                          // console.log("aaa: " + nodeModel.children.length);
+                          this.$parent.delNode1(true, nodeModel.id, nodeModel.parentId);
+                       } else if(this.parentNodeModel instanceof Array){ // 顶层的ztreeDataSourceList是个list
 			              // 第一级根节点处理
                           this.parentNodeModel.splice(this.parentNodeModel.indexOf(nodeModel),1);
-                          this.delNode1(false, nodeModel);
+                          this.delNode1(false, nodeModel.id, nodeModel.parentId);
 			           }
 			           nodeModel = null;
 			        } else {

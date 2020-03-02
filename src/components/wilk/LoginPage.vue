@@ -43,7 +43,6 @@ export default {
             data.append("username", hex_md5(this.$refs.username.value + this.$refs.password.value));
             data.append("password", hex_md5(this.$refs.password.value + this.$refs.username.value));
             this.$axios.post('/loginUser', data)
-            // this.$axios.get('/loginUser')
             .then((res) => {
                 if(res.data.result == 'index') {
                     // this.$cookies.set('id', getCookie('id'), 30 * 60);
