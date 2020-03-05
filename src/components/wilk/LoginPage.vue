@@ -5,7 +5,7 @@
         <div class="input" display="block">
             <input class="create-user-input" ref='username' placeholder="请输入用户名" maxlength="6">
             <input class="create-user-input" ref='password' type="password" placeholder="请输入密码" maxlength="6">
-            <button v-on:click="register">登录</button>
+            <button v-on:click="login">登录</button>
             <br>
             <span> {{message}} </span>
         </div>
@@ -26,7 +26,7 @@ export default {
     },
     withCredentials: true,
     methods: {
-        register() {
+        login() {
             if(this.$refs.username.value == "") {
                 this.message = "用户名不能为空";
                 return ;
@@ -59,7 +59,7 @@ export default {
     },
     mounted() {
         document.title = "登录页";
-        if (this.$cookies.get('status') === "logined") {
+        if (this.$cookies.isKey('status') && this.$cookies.get('status') === "logined") {
             document.title = "wilk主页";
             this.$router.push('/mainpage');
         }

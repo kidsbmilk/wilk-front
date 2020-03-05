@@ -45,7 +45,7 @@ router.beforeEach((to, from, next) => {
   console.log(router.app.$cookies.get("status"));
   to.meta && (typeof to.meta.title !== 'undefined' && setDocumentTitle(`${to.meta.title}`))
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    if (!router.app.$cookies.get("status") === "logined") { // 注意：是！...===，写成别的不行
+    if (!router.app.$cookies.isKey('status') || router.app.$cookies.get("status") !== "logined") { // 注意：是!==，写成别的不行
       next({
         path: '/loginpage',
         query: { redirect: to.fullPath }
