@@ -210,7 +210,7 @@ export default {
 				document.body.removeChild(downloadElement); //下载完成移除元素
 				window.URL.revokeObjectURL(href); //释放掉blob对象 
 				wsGlobal.send(INNER_CMD_PREFIX + "wilkget done " + this.form.fileName);
-				that.form.fileName = '';
+				this.form.fileName = '';
 				this.showFileDownload = false;
 			})
 			.catch((res) => {
@@ -365,6 +365,7 @@ export default {
 				} else {
 					this.ztreeDataSourceList = res.data.result;
 				}
+				this.initTerminal();
 			})
 			.catch((res) => {
 				console.log(res.data);
@@ -374,18 +375,9 @@ export default {
 			console.log("click upload");
 			// this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
 			this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
-		}
-	},
-	mounted() {
-		document.title = "wilk主页";
-		console.log("log 1");
-		if (!this.$cookies.isKey('status') || this.$cookies.get('status') !== 'logined') {
-			console.log("log 2");
-			this.$router.replace('/loginpage');
-		} else {
-			console.log("log 3");
+		},
+		initTerminal() {
 			let that = this;
-			this.freshTree();
 			term = new Terminal({cols: 100,
 						rows: 42,
 						cursorBlink: 5,
@@ -445,6 +437,14 @@ export default {
 				});
 			}
 		}
+	},
+	mounted() {
+		document.title = "wilk主页";
+		this.freshTree(); // 这个请求会对返回进行处理，如果没登录就跳到登录页
+		// // 因为没有退出并清cookies的操作，所以下面的判断目前没用
+		// if (!this.$cookies.isKey('status') || this.$cookies.get('status') !== 'logined') {
+		// 	this.$router.replace('/loginpage');
+		// }
 	}
 }
 </script>
