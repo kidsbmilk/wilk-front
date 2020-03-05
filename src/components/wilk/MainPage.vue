@@ -378,69 +378,73 @@ export default {
 	},
 	mounted() {
 		document.title = "wilk主页";
-		if (!this.$cookies.get('status') === "logined") {
-            return ;
-        }
-		term = new Terminal({cols: 100,
-					rows: 42,
-                  	cursorBlink: 5,
-                  	scrollback: 1000,
-				  	tabStopWidth: 4,
-				  	// fontSize: 12
-			  	});
-		let that = this;
-		this.freshTree()
-		ws = new WebSocket("ws://localhost/wilk/websocket");
-		wsGlobal = ws;
-		ws.onopen = function(event) {
-            term.open(document.getElementById('terminal'));
-			term.fit();
-			// 如果是组装命令，可以用JSON.stringify来分隔命令跟参数，后端容易做判断。TODO.
-			ws.onerror = function() {
-				console.log('connect error.');
-			};
-			ws.onmessage = function(event) {
-				// console.log("click upload");
-				// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
-				// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
-				// console.log('on message:', event.data);
-				if (event.data == 'wilk-login-success') {
-					ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
-				} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {
-					// that.uploadFunc(); // 这种方式不行 TODO.
-					// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
-					that.showFileUpload = true;
-					// document.getElementById("btid").click();
-				} else if (event.data.split(" ").length == 3 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkget') {
-					that.form.fileName = event.data.split(" ")[2];
-					that.showFileDownload = true;
-				} else {
-					term.write(event.data);
-					lastCmdHistory = event.data;
+		console.log("log 1");
+		if (!this.$cookies.isKey('status') || this.$cookies.get('status') !== 'logined') {
+			console.log("log 2");
+			this.$router.replace('/loginpage');
+		} else {
+			console.log("log 3");
+			let that = this;
+			this.freshTree();
+			term = new Terminal({cols: 100,
+						rows: 42,
+						cursorBlink: 5,
+						scrollback: 1000,
+						tabStopWidth: 4,
+						// fontSize: 12
+					});
+			ws = new WebSocket("ws://localhost/wilk/websocket");
+			wsGlobal = ws;
+			ws.onopen = function(event) {
+				term.open(document.getElementById('terminal'));
+				term.fit();
+				// 如果是组装命令，可以用JSON.stringify来分隔命令跟参数，后端容易做判断。TODO.
+				ws.onerror = function() {
+					console.log('connect error.');
 				}
-			};
-			term.textarea.onkeydown = function(e) {
-				// https://www.cnblogs.com/gygg/p/11359598.html
-				// https://zhidao.baidu.com/question/6865495.html
-				// http://www.51hei.com/bbs/dpj-139731-1.html
-				if(e.keyCode == 13) { // Enter，这个也是上下键选择的下载，之前用history方式记录了，得优化一下 TODO.
-					if (lastCmdHistory == 'wilkput') {
-						ws.send(INNER_CMD_PREFIX + 'history_wilkput');
-					} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
-						ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
+				ws.onmessage = function(event) {
+					// console.log("click upload");
+					// // this.$refs.uploadButton.$emit('click'); // 这个应该是针对一般控件的
+					// this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
+					// console.log('on message:', event.data);
+					if (event.data == 'wilk-login-success') {
+						ws.send(INNER_CMD_PREFIX + 'stty cols ' + term.cols + '; stty rows ' + term.rows + '\r');
+					} else if (event.data.split(" ").length == 2 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkput') {
+						// that.uploadFunc(); // 这种方式不行 TODO.
+						// 目前不能直接在ws里调用弹出上传文件的窗口，只能是显示上传按钮，用户再自己点击一下了。
+						that.showFileUpload = true;
+						// document.getElementById("btid").click();
+					} else if (event.data.split(" ").length == 3 && event.data.split(" ")[0] == 'BTOF' && event.data.split(" ")[1] == 'wilkget') {
+						that.form.fileName = event.data.split(" ")[2];
+						that.showFileDownload = true;
+					} else {
+						term.write(event.data);
+						lastCmdHistory = event.data;
 					}
 				}
-			};
-			term.on('data',function(data){
-				console.log('data =>', data);
-				ws.send(data.toString());
-			});
-			// 不用看最开始设置的cols为100，这里实际值可能不是100。
-			term.on('resize', size => {
-				ws.send(INNER_CMD_PREFIX + 'stty cols ' + size.cols + '; stty rows ' + size.rows + '\r');
-				console.log('resize', [size.cols, size.rows]);
-			});
-        };
+				term.textarea.onkeydown = function(e) {
+					// https://www.cnblogs.com/gygg/p/11359598.html
+					// https://zhidao.baidu.com/question/6865495.html
+					// http://www.51hei.com/bbs/dpj-139731-1.html
+					if(e.keyCode == 13) { // Enter，这个也是上下键选择的下载，之前用history方式记录了，得优化一下 TODO.
+						if (lastCmdHistory == 'wilkput') {
+							ws.send(INNER_CMD_PREFIX + 'history_wilkput');
+						} else if (lastCmdHistory.split(" ").length == 2 && lastCmdHistory.split(" ")[0] == 'wilkget') {
+							ws.send(INNER_CMD_PREFIX + 'history_wilkget_' + lastCmdHistory);
+						}
+					}
+				}
+				term.on('data',function(data){
+					console.log('data =>', data);
+					ws.send(data.toString());
+				});
+				// 不用看最开始设置的cols为100，这里实际值可能不是100。
+				term.on('resize', size => {
+					ws.send(INNER_CMD_PREFIX + 'stty cols ' + size.cols + '; stty rows ' + size.rows + '\r');
+					console.log('resize', [size.cols, size.rows]);
+				});
+			}
+		}
 	}
 }
 </script>
