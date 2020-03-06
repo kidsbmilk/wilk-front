@@ -47,7 +47,7 @@ export default {
                 if(res.data.result == 'index') {
                     // this.$cookies.set('id', getCookie('id'), 30 * 60);
                     // this.$cookies.set('username', getCookie('username'), 30 * 60);
-                    this.$cookies.set('status', getCookie('status'), 30 * 60);
+                    this.$cookies.set('status', getCookie('status'), 24 * 60 * 60); // 过期时间1天
                     this.$router.push('/mainpage');
                 }
                 this.message = res.data.result
