@@ -187,6 +187,7 @@ export default {
 			console.log("solve redict: " + res.data);
 			if (res != null && res.data.code != 0 && res.data.desc == 'login') {
 				this.$cookies.set('status', null);
+				term = null;
 				this.$router.replace('/loginpage');
             }
 		},
