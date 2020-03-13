@@ -365,7 +365,9 @@ export default {
 				} else {
 					this.ztreeDataSourceList = res.data.result;
 				}
-				this.initTerminal();
+				if (term === null) {
+					this.initTerminal();
+				}
 			})
 			.catch((res) => {
 				console.log(res.data);
