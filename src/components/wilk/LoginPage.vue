@@ -45,9 +45,10 @@ export default {
             this.$axios.post('/wilk/loginUser', data)
             .then((res) => {
                 if(res.data.result == 'index') {
-                    this.$cookies.set('id', getCookie('id'), 20);
-                    this.$cookies.set('username', getCookie('username'), 20);
-                    this.$cookies.set('status', getCookie('status'), 20); // 2 * 60 * 60，过期时间2小时
+                    let timeout = parseInt(getCookie('timeout'));
+                    this.$cookies.set('id', getCookie('id'), timeout);
+                    this.$cookies.set('username', getCookie('username'), timeout);
+                    this.$cookies.set('status', getCookie('status'), timeout);
                     this.$router.push('/mainpage');
                 }
                 this.message = res.data.result

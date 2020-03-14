@@ -381,6 +381,10 @@ export default {
 			this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
 		},
 		initTerminal() {
+			// 用户打开某服务器后，websocket会有定期保活的功能。
+			// 如果用户登录了，但是一直没打开服务器，则过段时间，websocket可能会断开，
+			// 要做下防护措施。可以在ws的关闭方法中，再次打开websocket。
+			// 也可以在用户发信息前先判断服务器有没有断开，如果断开了，则重连。TODO.
 			let that = this;
 			term = new Terminal({cols: 100,
 						rows: 42,
