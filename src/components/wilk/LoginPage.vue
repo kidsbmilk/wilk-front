@@ -42,12 +42,12 @@ export default {
             var data = new URLSearchParams();
             data.append("username", hex_md5(this.$refs.username.value + this.$refs.password.value));
             data.append("password", hex_md5(this.$refs.password.value + this.$refs.username.value));
-            this.$axios.post('/loginUser', data)
+            this.$axios.post('/wilk/loginUser', data)
             .then((res) => {
                 if(res.data.result == 'index') {
-                    // this.$cookies.set('id', getCookie('id'), 30 * 60);
-                    // this.$cookies.set('username', getCookie('username'), 30 * 60);
-                    this.$cookies.set('status', getCookie('status'), 24 * 60 * 60); // 过期时间1天
+                    this.$cookies.set('id', getCookie('id'), 20);
+                    this.$cookies.set('username', getCookie('username'), 20);
+                    this.$cookies.set('status', getCookie('status'), 20); // 2 * 60 * 60，过期时间2小时
                     this.$router.push('/mainpage');
                 }
                 this.message = res.data.result
@@ -59,6 +59,7 @@ export default {
     },
     mounted() {
         document.title = "登录页";
+        console.log(this.$cookies.get('status'));
         if (this.$cookies.isKey('status') && this.$cookies.get('status') === "logined") {
             document.title = "wilk主页";
             this.$router.push('/mainpage');
