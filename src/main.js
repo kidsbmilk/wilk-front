@@ -11,7 +11,7 @@ import 'vue-contextmenu/style/css/font-awesome.min.css'
 var axios = require('axios')
 
 axios.defaults.withCredentials=true;
-axios.defaults.baseURL = 'http://localhost/wilk'
+axios.defaults.baseURL = 'http://localhost'
 
 var AU = require('ansi_up')
 var ansi_up = new AU.default

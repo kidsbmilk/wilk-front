@@ -45,7 +45,7 @@ export default {
                 this.message = "密码不一致！"
                 return ;
             }
-            this.$axios.post('/user/register', {
+            this.$axios.post('/wilk/user/register', {
                 username: this.$refs.username.value,
                 usernameMd5: hex_md5(this.$refs.username.value + this.$refs.password.value),
                 password: hex_md5(this.$refs.password.value + this.$refs.username.value),

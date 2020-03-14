@@ -188,7 +188,7 @@ export default {
 			if (res != null && res.data.code != 0 && res.data.desc == 'login') {
 				this.$cookies.set('status', null);
 				term = null;
-				this.$router.replace('/loginpage');
+				this.$router.push('/loginpage');
             }
 		},
 		handleDownLoad() {
@@ -268,11 +268,11 @@ export default {
 			var data = new URLSearchParams();
 			var url = "";
 			if (isChildren) {
-				url = "/cmd/delete";
+				url = "/wilk/cmd/delete";
 				data.append("cmdId", nodeId);
 				data.append("serverId", parentId);
 			} else {
-				url = "/server/delete";
+				url = "/wilk/server/delete";
 				data.append("serverId", nodeId);
 			}
             this.$axios.post(
@@ -302,7 +302,7 @@ export default {
             data.append("serverName", this.$refs.serverName.value);
             data.append("serverValue", this.$refs.serverValue.value);
             this.$axios.post(
-                '/server/add',
+                '/wilk/server/add',
                 data
             )
             .then((res) => {
@@ -334,7 +334,7 @@ export default {
 			data.append("cmdType", parseInt(this.$refs.cmdType.value));
 			data.append("serverId", nodeModelTp.id);
             this.$axios.post(
-                '/cmd/add',
+                '/wilk/cmd/add',
                 data
             )
             .then((res) => {
@@ -355,9 +355,10 @@ export default {
 			this.showAddCmd = false;
 		},
 		freshTree() {
+			// 所有请求都在调用前先判断登录标记是否已invalid，我这个项目的前端请求封装不好 TODO.
 			// this.uploadFunc(); // 这个倒是可以，只是放mounted里的ws下就调用不了了。
 			console.log("freshTree");
-			this.$axios.get("/server/getserverandcmd")
+			this.$axios.get("/wilk/server/getserverandcmd")
 			.then((res) => {
 				console.log(res);
 				this.solveLoginRedirection(res);
@@ -380,6 +381,10 @@ export default {
 			this.$refs.uploadButton.$el.click(); // 这个是针对element-ui控件的
 		},
 		initTerminal() {
+			// 用户打开某服务器后，websocket会有定期保活的功能。
+			// 如果用户登录了，但是一直没打开服务器，则过段时间，websocket可能会断开，
+			// 要做下防护措施。可以在ws的关闭方法中，再次打开websocket。
+			// 也可以在用户发信息前先判断服务器有没有断开，如果断开了，则重连。TODO.
 			let that = this;
 			term = new Terminal({cols: 100,
 						rows: 42,
@@ -443,11 +448,12 @@ export default {
 	},
 	mounted() {
 		document.title = "wilk主页";
-		this.freshTree(); // 这个请求会对返回进行处理，如果没登录就跳到登录页
-		// // 因为没有退出并清cookies的操作，所以下面的判断目前没用
-		// if (!this.$cookies.isKey('status') || this.$cookies.get('status') !== 'logined') {
-		// 	this.$router.replace('/loginpage');
-		// }
+		// 因为没有退出并清cookies的操作，所以下面的判断目前没用
+		if (!this.$cookies.isKey('status') || this.$cookies.get('status') !== 'logined') {
+			this.$router.replace('/loginpage');
+		} else {
+			this.freshTree(); // 这个请求会对返回进行处理，如果没登录就跳到登录页
+		}
 	}
 }
 </script>
